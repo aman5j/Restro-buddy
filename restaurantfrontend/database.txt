@@ -1,0 +1,127 @@
+numeric.gwl@gmail.com 
+https://restrobuddy.in/
+
+
+RestaurantBooking
+------------------
+
+States
+-------
+stateid pk
+statename
+
+City
+----
+stateid	fk
+cityid	pk
+cityname
+
+Restaurant
+-----------
+restaurantid pk
+restaurantname
+ownername
+mobileno
+emailid
+phonenumber
+address
+stateid
+cityid
+url
+fassai_no
+shopregistration
+gst
+gsttype
+gstno
+logo
+
+
+category
+---------
+restaurantid fk 
+categoryid pk 
+categoryname
+icon 
+
+footitems
+-----------
+restaurantid  [TB]
+categoryid  dropdown
+fooditemid  PK 
+fooditemname 
+foodtype  radio button  veg,nonveg
+ingredients
+price
+offerprice
+icon 
+
+TableBooking
+-------------
+restaurantid fk 
+tableid pk 
+tableno 
+noofchairs 
+floor DD 
+
+Waiters
+--------------
+restaurantid  fk 
+waiterid pk 
+waitername
+gender
+dob 
+mobileno
+emailid
+address
+picture 
+
+
+waitertable
+--------------
+waitertableid pk 
+restaurantid [TB]
+waiterid DD
+tablenoid DD
+currentdate 
+
+
+currentdate         water DD 
+
+tabledetail DD      Timing     
+
+    guest name 
+
+    choose food    DD    Rate     offer     qty  netamount  addmore(+)
+
+
+https://mui.com/store/collections/free-react-dashboard/
+
+https://github.com/devias-io/material-kit-react
+
+https://github.com/mui/material-ui/blob/v5.14.11/docs/data/material/getting-started/templates/dashboard/Dashboard.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

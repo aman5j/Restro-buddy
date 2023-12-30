@@ -1,0 +1,393 @@
+
+		Qty:1
+{FT: {3:{},5:{},1:{}}
+
+{3:V,4:V}
+
+{FT:{4:item}
+	{5:item}
+}
+
+
+
+fl={4:item}
+
+foodorder={ft:{4:item},{7:item}}
+
+
+import { useState,useEffect } from "react"
+import { postData,getData } from "../../services/FetchNodeServices"
+import MaterialTable from "@material-table/core"
+import { useNavigate } from "react-router-dom";
+import { Grid,Button, Dialog, DialogTitle, DialogContent, DialogActions,TextField,Divider } from "@mui/material";
+
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { useSelector } from "react-redux";
+import TableCart from "./TableCart";
+
+import { makeStyles } from "@mui/styles";
+var useStyles=makeStyles({
+    root:{
+        width: 'auto',
+        height: 'auto',
+        background: '#dfe4ea',
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        flexDirection:'column',
+        padding:10
+    },
+    box:{
+      width:'80%',
+      height:'auto',
+      background:'#f1f2f6',
+      padding:10,
+      margin:10,
+      borderRadius:10
+   },
+   filerbox:{
+    width:'80%',
+        height:'auto',
+        borderRadius:10,
+        border:'solid',
+        borderColor:'#dff9fb',
+        background:'#fff',
+        padding:15,
+        marginBottom:10
+   },
+   center:{
+      display:'flex',
+      justifyContent:'center',
+      alignItems:'center'
+   },
+   Heading:{
+    fontSize:16,
+    fontFamily:'Kanit',
+    fontWeight:'bold'
+   }
+  
+  })
+  
+export default function DisplayAllBill()
+{   var useStyle = useStyles()
+    var navigate = useNavigate()
+    const [bill,setBill]=useState([])
+    const [tempbill,setTempBill]=useState([])
+    const [open,setOpen]=useState(false)
+    const [from,setFrom]=useState("");
+    const [to,setTo]=useState("");
+    const [refresh,setRefresh]=useState(false);
+    //////////////bill Fields //////////////
+    const [billno,setBillNo]=useState('')
+    const [billtime,setBillTime]=useState('')
+    const [billdate,setBillDate]=useState('')
+    const [tableno,setTableNo]=useState('')
+    const [server,setServer]=useState('')
+    const [fssai,setFssai]=useState('')
+    const [cnote,setCNote]=useState('')
+    const [gst,setGst]=useState('')
+    const [billingdetails,setBillingDetails]=useState('')
+    const [totalamount,setTotalAmount]=useState('')
+    const [customername,setCustomerName]=useState('')
+    const [mobileno,setMobileNo]=useState('')
+    ////////////////////////////////////////
+
+    var admin = JSON.parse(localStorage.getItem('ADMIN'))
+    var gsttype = parseInt(admin.gsttype/2)
+    
+
+    var foodList=[]
+    var data=bill[billingdetails]
+    var data = JSON.parse(data)
+    foodList=data.map((item)=>{
+      console.log(item)
+    })
+    // foodList=Object.values(cart)
+
+    
+    var totalAmount=foodList.reduce(calculateTotal,0)
+    var totalOffer=foodList.reduce(calculateTotalOffer,0)
+    
+    function calculateTotal(item1,item2){
+       return item1+(item2.price*item2.qty)
+    }
+
+    function calculateTotalOffer(item1,item2){
+        var price=item2.offerprice>0?item2.price*item2.qty:0
+        return item1+(price-(item2.offerprice*item2.qty))
+    }
+
+
+    const fetchAllBillByDate=async()=>{
+        var body={from:from,to:to}
+        var respose = await postData('billing/display_all_bills_by_billdate',body)
+        setBill(respose.data)
+        console.log(respose.data)
+    }
+
+    
+    const fetchAllBill=async()=>{
+        var responce = await getData('billing/display_all_bills')
+        setBill(responce.data)
+        console.log(responce.data)
+    }
+    useEffect(function(){
+        fetchAllBill()
+    },[])
+
+    const handleFrom=(event)=>{
+        const m=String(Number(event.$M)+1);
+        const d=String(event.$D);
+        const y=String(event.$y);
+        setFrom(y+"-"+m+"-"+d);   
+      }
+    
+      const handleTo=(event)=>{
+        const m=String(Number(event.$M)+1);
+        const d=String(event.$D);
+        const y=String(event.$y);
+        setTo(y+"-"+m+"-"+d);   
+      }
+
+      const handleFilter=()=>{
+        fetchAllBillByDate()
+        setRefresh(!refresh)
+      }
+
+      const handleDialogClose=()=>{
+        setOpen(false)
+      }
+
+      const showTotalBill=()=>{
+        return (<>
+        <Grid item xs={12}><Divider/></Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>Amount:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{totalAmount}</Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>Discount:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{totalOffer}</Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>Total Amount:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{totalAmount-totalOffer}</Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>CGST:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{(totalAmount-totalOffer)*gst/100}</Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>SGST:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{(totalAmount-totalOffer)*gst/100}</Grid>
+        
+        <Grid item xs={6} style={{fontWeight:'bold'}}>Net Amount:</Grid>
+        <Grid item xs={6} style={{fontWeight:'bold',textAlign:'right'}}>&#8377;{(totalAmount-totalOffer)+((totalAmount-totalOffer)*admin.gsttype/100)}</Grid>
+        
+        <Grid item xs={12}><Divider/></Grid>
+        
+        </>)
+    }
+
+
+
+      const showFoodList=()=>
+    {   
+        return foodList?.map((item,index)=>{
+            return (
+                <>   
+                    <Grid item xs={1}>{index+1}</Grid>
+                    <Grid item xs={3}>{item?.fooditemname}</Grid>
+                    <Grid item xs={2} style={{textAlign:'right'}}>&#8377;{item?.price}</Grid>
+                    <Grid item xs={2} style={{textAlign:'right'}}>&#8377;{item?.offerprice}</Grid>
+                    <Grid item xs={2} style={{display:'flex',justifyContent:'right'}}>{item?.qty}</Grid>
+                    <Grid item xs={2} style={{textAlign:'right',fontWeight:'bold'}}>&#8377;{item?.offerprice>0?item?.offerprice*item?.qty:item?.price*item?.qty}</Grid>
+                </>
+            )
+        })
+    }
+
+
+      const heading=()=>{
+        return(<div>
+            <Grid container spacing={1} style={{fontFamily:'Kanit'}}>
+                <Grid item xs={12}><Divider /></Grid>   
+                <Grid item xs={1} style={{fontWeight:'bold'}}>Sn</Grid>
+                <Grid item xs={3} style={{fontWeight:'bold'}}>Name</Grid>
+                <Grid item xs={2} style={{fontWeight:'bold',textAlign:'right'}}>Rate</Grid>
+                <Grid item xs={2} style={{fontWeight:'bold',textAlign:'right'}}>Offer</Grid>
+                <Grid item xs={2} style={{fontWeight:'bold',textAlign:'center'}}>Qty</Grid>
+                <Grid item xs={2} style={{fontWeight:'bold',textAlign:'right'}}>Amount</Grid>
+                <Grid item xs={12}><Divider /></Grid>   
+                {showFoodList()}
+                {showTotalBill()}
+
+                
+            </Grid>
+            
+        </div>)
+    }
+
+    
+
+      const showBillOFCustomer=()=>{
+        // console.log("displaybill",billingdetails[0])
+        return(<div>
+          <>
+            <Grid container spacing={3}>
+              <Grid item xs={3} className={useStyle.Heading}>Bill Number</Grid>
+              <Grid item xs={3}>{billno}</Grid>
+
+              <Grid item xs={3} className={useStyle.Heading}>Bill Date</Grid>
+              <Grid item xs={3}>{billdate}</Grid>
+              
+              <Grid item xs={3} className={useStyle.Heading}>Bill Time</Grid>
+              <Grid item xs={3}>{billtime}</Grid>
+              
+              <Grid item xs={3} className={useStyle.Heading}>Server</Grid>
+              <Grid item xs={3}>{server}</Grid>
+              
+              
+              <Grid item xs={3} className={useStyle.Heading}>Customer Name</Grid>
+              <Grid item xs={3}>{customername}</Grid>
+              
+              <Grid item xs={3} className={useStyle.Heading}>Mobile Number</Grid>
+              <Grid item xs={3}>{mobileno}</Grid>
+              
+              <Grid item xs={3} className={useStyle.Heading}>GST Number</Grid>
+              <Grid item xs={3}>{gst}</Grid>
+
+              <Grid item xs={3} className={useStyle.Heading}>Total Amount</Grid>
+              <Grid item xs={3}>{totalamount}</Grid>
+
+              <Grid item xs={3} className={useStyle.Heading}>Table Number</Grid>
+              <Grid item xs={3}>{tableno}</Grid>
+
+              <Grid item xs={3} className={useStyle.Heading}>Fssai</Grid>
+              <Grid item xs={3}>{fssai}</Grid>
+
+              <Grid item xs={3} className={useStyle.Heading}>Billing Details</Grid>
+              <Grid item xs={3}>{billingdetails}</Grid>
+      
+              <Grid item xs={12}>
+              {heading()}
+              </Grid>
+              
+
+            </Grid>
+          </>
+        </div>)
+      }
+
+      const showDialogData=()=>{
+        return(<div>
+          <Dialog maxWidth={'md'} open={open}>
+            <DialogTitle>
+              Bill Detail's
+            </DialogTitle>
+            <DialogContent>
+              {showBillOFCustomer()}
+              {/* {<TableCart tableNo={tableno}/>} */}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClose}>Close</Button>
+            </DialogActions>
+
+          </Dialog>
+        </div>)
+      }
+
+      const handleEdit=(rowData)=>{
+        setBillNo(rowData.billno)
+        setBillTime(rowData.billtime)
+        setBillDate(rowData.billdate)
+        setTableNo(rowData.tableno)
+        setServer(rowData.server)
+        setFssai(rowData.fssai)
+        setCNote(rowData.cnote)
+        setGst(rowData.gst)
+        setBillingDetails(rowData.billingdetails)
+        setTotalAmount(rowData.totalamount)
+        setCustomerName(rowData.customername)
+        setMobileNo(rowData.mobileno)
+        setOpen(true)
+      }
+
+    const showBills=()=>{
+            return (
+              <MaterialTable
+                title="Bill List's"
+                columns={[
+                  { title: 'billno', field: 'billno' },
+                  { title: 'Customer Name', field: 'customername' },
+                  { title: 'mobileno', field: 'mobileno' },
+                  { title: 'billtime', field: 'billtime' },
+                  { title: 'billdate', field: 'billdate' },
+                  { title: 'server', field: 'server' },
+                  { title: 'fssai', field: 'fssai' },
+                  { title: 'gstno', field: 'gst' },
+                  { title: 'Price', field: 'totalamount' },
+                  
+                ]}
+                data={bill}        
+                actions={[
+                  {
+                    icon: 'edit',
+                    tooltip: 'Edit Bill',
+                    onClick: (event, rowData) => handleEdit(rowData)
+                  },
+                  {
+                    icon: 'delete',
+                    tooltip: 'Delete Bill',
+                    onClick: (event, rowData) => alert("You want to delete " + rowData.name)
+                },
+                {
+                   icon: 'add',
+                   tooltip: 'Add Bill',
+                   isFreeAction: true,
+                   onClick: (event, rowData) => navigate('/foodbooking')
+                }
+                ]}
+              />
+            )
+    }
+
+    return(<div className={useStyle.root}>
+        <div className={useStyle.filerbox}>
+            <Grid container spacing={3}>
+                
+                <Grid item xs={3}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>        
+                      <DatePicker
+                        label="FROM"
+                        format="DD-MM-YYYY"
+                        onChange={handleFrom}                      
+                      />
+                    </DemoContainer>
+                </LocalizationProvider>
+                </Grid>
+
+                <Grid item xs={3}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DemoContainer components={['DatePicker', 'DatePicker']}>        
+                      <DatePicker
+                        label="To"
+                        format="DD-MM-YYYY"
+                        onChange={handleTo}
+                      />
+                    </DemoContainer>
+                </LocalizationProvider>
+                </Grid>
+
+                <Grid item xs={3} style={{display:'flex',alignItems:'center'}}>
+                    <Button variant="contained" fullWidth onClick={handleFilter}>Search</Button>
+                </Grid>
+
+            </Grid>
+        </div>
+        <div className={useStyle.box}>
+        {showBills()}
+        {showDialogData()}
+        </div>
+    </div>)
+}
